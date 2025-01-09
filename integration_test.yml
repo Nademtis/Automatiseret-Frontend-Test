@@ -1,0 +1,85 @@
+name: Docker build
+
+on:
+  pull_request:
+    branches:
+      - 'test/*'
+
+jobs:
+  docker-build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Chrome Browser
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+        id: setup-chrome
+
+      - name: Check Browser version
+        run: |
+          echo Installed chromium version: ${{ steps.setup-chrome.outputs.chrome-version }}
+          ${{ steps.setup-chrome.outputs.chrome-path }} --version
+
+      - name: 🌐 Install Chromedriver
+        uses: nanasess/setup-chromedriver@v2
+        with:
+          chromedriver-version: '131.0.6778.204'
+
+      - name: Run chrome driver
+        run: |
+          chromedriver --version
+          chromedriver --port=4444 &
+
+      - name: 📢 Check Chromedriver Version
+        run: chromedriver -v
+
+      - name: ⏳ Delay
+        run: |
+          echo "Waiting for Chromedriver to start..."
+          sleep 15
+
+      - name: 🌐 Check Chromedriver Port
+        run: |
+          lsof -i :4444
+
+      - name: Flutter Doctor
+        run: flutter doctor -v
+
+      - name: Pub Get
+        run: |
+          flutter pub get
+
+      - name: Build Freeze Files
+        run: |
+          flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: Run Tests
+        run: bash ./run_tests.sh
+
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: test_report.txt
+
+      - name: Send Email with Report
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: Test Report
+          body: "Find the test report attached."
+          to: "nduris@hotmail.com"
+          from: "nicki.duris@gmail.com"
+          attachments: test_report.txt
