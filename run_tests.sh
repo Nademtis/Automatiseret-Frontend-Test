@@ -35,7 +35,6 @@ run_test "Notification (mocked) test" "flutter drive --driver=test_driver/integr
 run_test "Event test" "flutter drive --driver=test_driver/integration_test.dart --target=test_integration/event_test.dart -d web-server --headless --browser-name=chrome"
 run_test "Navigation test" "flutter drive --driver=test_driver/integration_test.dart --target=test_integration/navigation_test.dart -d web-server --headless --browser-name=chrome"
 run_test "Create Venue test" "flutter drive --driver=test_driver/integration_test.dart --target=test_integration/create_venue_test.dart -d web-server --headless --browser-name=chrome"
-# -d web-server --headless --browser-name=chrome, we used this in the old working version
 
 # Final summary
 echo "Test run completed. See the full report in $REPORT_FILE."
